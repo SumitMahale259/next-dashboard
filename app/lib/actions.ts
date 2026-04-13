@@ -87,7 +87,7 @@ export async function createInvoice(prevState: State, formData: FormData) {
 
 const UpdateInvoice = FormSchema.omit({ id: true, date: true });
 
-export async function updateInvoice(prevState: State, id: string, formData: FormData) {
+export async function updateInvoice(id: string, prevState: State, formData: FormData) {
     const validatedFields = UpdateInvoice.safeParse({
         customerId: formData.get('customerId'),
         amount: formData.get('amount'),
@@ -102,7 +102,6 @@ export async function updateInvoice(prevState: State, id: string, formData: Form
     }
 
     const { customerId, amount, status } = validatedFields.data;
-
     const amountInCents = amount * 100;
 
     try {
@@ -121,8 +120,11 @@ export async function updateInvoice(prevState: State, id: string, formData: Form
 }
 
 export async function deleteInvoice(id: string) {
-    // throw new Error('Failed to delete invoice');
-
-    await sql`DELETE FROM invoices WHERE id=${id}`;
+    try {
+        await sql`DELETE FROM invoices WHERE id=${id}`;
+    } catch (error) {
+        console.error(error);
+        return { message: 'Database Error: Failed to Delete Invoice.'};
+    }
     revalidatePath('/dashboard/invoices');
 }
